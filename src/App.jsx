@@ -2,46 +2,62 @@ import Lists from './lists.jsx';
 import Header from './Header.jsx';
 import { useState } from 'react';
 import Footer from './Footer.jsx';
+import AddItem from './AddItem.jsx';
+import SearchItem from './SearchItem.jsx';
 
 function App() {
-  const [items, setItems] = useState([
-    {
-      id: 1,
-      checked: false,
-      item: 'One half pound bag of cocoa covered almonds unsalted',
-    },
-    {
-      id: 2,
-      checked: false,
-      item: 'Item 2',
-    },
-    {
-      id: 3,
-      checked: false,
-      item: 'Item3',
-    },
-  ]);
+  const [items, setItems] = useState(
+    JSON.parse(localStorage.getItem('shoppinglist'))
+  );
+
+  const [newItem, setNewItem] = useState('');
+  const [search, setSearch] = useState('');
+
+  const setAndSaveItems = (newItems) => {
+    setItems(newItems);
+    localStorage.setItem('shoppinglist', JSON.stringify(newItems));
+  };
+
+  const addItem = (item) => {
+    const id = items.length ? items[items.length - 1].id + 1 : 1;
+    const myNewItem = { id, checked: false, item };
+    const listItems = [...items, myNewItem];
+    setAndSaveItems(listItems);
+  };
 
   const handleCheck = (id) => {
     console.log(id);
     const listItems = items.map((item) =>
       item.id === id ? { ...item, checked: !item.checked } : item
     );
-    setItems(listItems);
-    localStorage.setItem('shoppinglist', JSON.stringify(listItems));
+    setAndSaveItems(listItems);
   };
 
   const handleDelete = (id) => {
     const listItems = items.filter((item) => item.id !== id);
     console.log(listItems);
-    setItems(listItems);
+    setAndSaveItems(listItems);
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    addItem(newItem);
+    setNewItem('');
   };
 
   return (
     <div className="App">
       <Header title="Grocery List" />
+      <SearchItem search={search} setSearch={setSearch} />
+      <AddItem
+        newItem={newItem}
+        setNewItem={setNewItem}
+        handleSubmit={handleSubmit}
+      />
       <Lists
-        items={items}
+        items={items.filter((item) =>
+          item.item.toLowerCase().includes(search.toLowerCase())
+        )}
         handleCheck={handleCheck}
         handleDelete={handleDelete}
       />
